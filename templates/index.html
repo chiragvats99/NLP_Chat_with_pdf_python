@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with multiple PDFs</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+        }
+        .chat {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .chat .user {
+            text-align: right;
+            color: #007bff;
+        }
+        .chat .bot {
+            text-align: left;
+            color: #333;
+        }
+        .upload-section, .chat-section {
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Chat with multiple PDFs</h1>
+        <div class="upload-section">
+            <h2>Upload your PDFs</h2>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <input type="file" name="files" multiple>
+                <button type="submit">Process</button>
+            </form>
+            <div id="uploadStatus"></div>
+        </div>
+        <div class="chat-section">
+            <h2>Ask a Question</h2>
+            <form id="questionForm">
+                <input type="text" id="question" name="question" placeholder="Type your question here" required>
+                <button type="submit">Ask</button>
+            </form>
+            <div id="chatHistory"></div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('uploadStatus').innerText = data.message;
+            })
+            .catch(error => {
+                document.getElementById('uploadStatus').innerText = 'Error processing files';
+            });
+        });
+
+        document.getElementById('questionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const question = document.getElementById('question').value;
+            fetch('/ask', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({ question: question })
+            })
+            .then(response => response.json())
+            .then(data => {
+                const chatHistory = document.getElementById('chatHistory');
+                chatHistory.innerHTML += '<div class="chat"><div class="user">User: ' + question + '</div><div class="bot">Bot: ' + data.response + '</div></div>';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
